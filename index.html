@@ -1,36 +1,6 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Lô Tô Online 9x9</title>
-<style>
-body { font-family: Arial; text-align: center; }
-table { border-collapse: collapse; margin: auto; }  
-td {
-  width: 50px; height: 50px;
-  border: 1px solid #000;
-  cursor: pointer;
-  font-weight: bold;
-}
-.marked { background: yellow; }
-#status { margin-top: 20px; font-size: 20px; color: red; }
-</style>
-</head>
-
-<body>
-
-<h2>Chọn STT Bảng Số</h2>
-<select id="boardSelect"></select>
-
-<h2>Bảng Lô Tô 9x9</h2>
-<table id="board"></table>
-
-<div id="status"></div>
-
 <script>
 const boards = {};
 
-// Tạo số theo từng cột đúng rule
 function getNumberByColumn(col) {
   let min = col * 10 + 1;
   let max = (col === 8) ? 90 : col * 10 + 9;
@@ -39,26 +9,26 @@ function getNumberByColumn(col) {
 
 function generateBoard() {
   let board = [];
+  let usedNumbers = new Set(); // CHỐNG TRÙNG TOÀN BẢNG
 
   for(let i = 0; i < 9; i++){
     let row = Array(9).fill("");
-    let used = new Set();
 
-    // Chọn 5 cột ngẫu nhiên
+    // Chọn 5 cột
     let cols = [];
     while(cols.length < 5){
       let c = Math.floor(Math.random() * 9);
       if(!cols.includes(c)) cols.push(c);
     }
 
-    // Gán số đúng cột, không trùng
+    // Gán số đúng cột + không trùng toàn bảng
     cols.forEach(c => {
       let num;
       do {
         num = getNumberByColumn(c);
-      } while(used.has(num));
+      } while(usedNumbers.has(num));
 
-      used.add(num);
+      usedNumbers.add(num);
       row[c] = num;
     });
 
@@ -68,43 +38,8 @@ function generateBoard() {
   return board;
 }
 
-// Tạo 20 bảng số
+// Tạo 20 bảng
 for(let i=1;i<=20;i++){
   boards[i] = generateBoard();
 }
-
-// Dropdown chọn bảng
-const select = document.getElementById("boardSelect");
-for(let i=1;i<=20;i++){
-  let opt = document.createElement("option");
-  opt.value = i;
-  opt.text = "Bảng số " + i;
-  select.appendChild(opt);
-}
-
-select.onchange = () => loadBoard(select.value);
-
-// Hiển thị bảng
-function loadBoard(id){
-  const board = boards[id];
-  const table = document.getElementById("board");
-  table.innerHTML = "";
-
-  for(let i=0;i<9;i++){
-    let tr = document.createElement("tr");
-    for(let j=0;j<9;j++){
-      let td = document.createElement("td");
-      td.innerText = board[i][j];
-      td.onclick = () => td.classList.toggle("marked");
-      tr.appendChild(td);
-    }
-    table.appendChild(tr);
-  }
-}
-
-// Load mặc định bảng 1
-loadBoard(1);
 </script>
-
-</body>
-</html>
