@@ -1,78 +1,46 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<title>Lô Tô Online – Phòng Nhiều Người</title>
+<meta charset="UTF-8">
+<title>Lô Tô Online 9x9</title>
 <style>
-body { font-family: Arial; text-align: center; background:#f5f5f5; }
-#container { max-width: 900px; margin: auto; }
+body { font-family: Arial; text-align: center; }
 table { border-collapse: collapse; margin: auto; }
-td { width:40px; height:40px; border:1px solid #000; cursor:pointer; font-weight:bold; background:#fff; }
+td {
+  width: 50px; height: 50px;
+  border: 1px solid #000;
+  cursor: pointer;
+  font-weight: bold;
+}
 .marked { background: yellow; }
-#chat { border:1px solid #ccc; height:200px; overflow-y:auto; background:#fff; padding:5px; }
+#status { margin-top: 20px; font-size: 20px; color: red; }
 </style>
 </head>
+
 <body>
-<div id="container">
-<h2>Lô Tô Online – Phòng nhiều người</h2>
 
-<div>
-Tên bạn: <input id="username" placeholder="Nhập tên" />
-<br/><br/>
-Mã phòng: <input id="room" placeholder="VD: phong1" />
-<button onclick="joinRoom()">Vào phòng</button>
-</div>
-
-<h3>Chọn STT Bảng</h3>
+<h2>Chọn STT Bảng Số</h2>
 <select id="boardSelect"></select>
 
-<h3>Bảng Lô Tô 9x9</h3>
+<h2>Bảng Lô Tô 9x9</h2>
 <table id="board"></table>
 
-<h3>Chat phòng</h3>
-<div id="chat"></div>
-<input id="chatInput" placeholder="Nhập tin nhắn..." />
-<button onclick="sendChat()">Gửi</button>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<div id="status"></div>
 
 <script>
-// CẤU HÌNH FIREBASE – BẠN PHẢI THAY
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
-};
+const boards = {};
+let usedBoards = [];
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let currentRoom = "";
-let currentUser = "";
-
-function joinRoom() {
-  currentUser = document.getElementById('username').value;
-  currentRoom = document.getElementById('room').value;
-  if(!currentUser || !currentRoom) { alert('Nhập đủ tên và phòng'); return; }
-  loadBoards();
-  listenChat();
-}
-
-// TẠO 20 BẢNG SỐ
 function generateBoard() {
   let numbers = [];
   while(numbers.length < 45) {
     let n = Math.floor(Math.random()*90)+1;
     if(!numbers.includes(n)) numbers.push(n);
   }
+
   let board = [];
   let index = 0;
+
   for(let i=0;i<9;i++){
     let row = [];
     let cols = [];
@@ -80,42 +48,38 @@ function generateBoard() {
       let c = Math.floor(Math.random()*9);
       if(!cols.includes(c)) cols.push(c);
     }
+
     for(let j=0;j<9;j++){
-      row.push(cols.includes(j) ? numbers[index++] : "");
+      if(cols.includes(j)){
+        row.push(numbers[index++]);
+      } else {
+        row.push("");
+      }
     }
     board.push(row);
   }
   return board;
 }
 
-function loadBoards() {
-  const select = document.getElementById("boardSelect");
-  select.innerHTML = "";
-
-  for(let i=1;i<=20;i++){
-    let opt = document.createElement("option");
-    opt.value = i;
-    opt.text = "Bảng " + i;
-    select.appendChild(opt);
-  }
-
-  select.onchange = () => chooseBoard(select.value);
+for(let i=1;i<=20;i++){
+  boards[i] = generateBoard();
 }
 
-function chooseBoard(id) {
-  db.ref(`rooms/${currentRoom}/boards/${id}`).once("value", snap => {
-    if(snap.exists()) {
-      alert("Bảng này đã có người chọn!");
-    } else {
-      db.ref(`rooms/${currentRoom}/boards/${id}`).set(currentUser);
-      renderBoard(generateBoard());
-    }
-  });
+const select = document.getElementById("boardSelect");
+for(let i=1;i<=20;i++){
+  let opt = document.createElement("option");
+  opt.value = i;
+  opt.text = "Bảng số " + i;
+  select.appendChild(opt);
 }
 
-function renderBoard(board) {
+select.onchange = () => loadBoard(select.value);
+
+function loadBoard(id){
+  const board = boards[id];
   const table = document.getElementById("board");
   table.innerHTML = "";
+
   for(let i=0;i<9;i++){
     let tr = document.createElement("tr");
     for(let j=0;j<9;j++){
@@ -128,25 +92,8 @@ function renderBoard(board) {
   }
 }
 
-// CHAT
-function sendChat() {
-  const msg = document.getElementById("chatInput").value;
-  if(!msg) return;
-  db.ref(`rooms/${currentRoom}/chat`).push({
-    user: currentUser,
-    text: msg
-  });
-  document.getElementById("chatInput").value = "";
-}
-
-function listenChat() {
-  db.ref(`rooms/${currentRoom}/chat`).on("child_added", snap => {
-    const data = snap.val();
-    const div = document.createElement("div");
-    div.innerText = data.user + ": " + data.text;
-    document.getElementById("chat").appendChild(div);
-  });
-}
+loadBoard(1);
 </script>
+
 </body>
 </html>
