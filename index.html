@@ -31,38 +31,31 @@ td {
 const boards = {};
 let usedBoards = [];
 
-function generateBoard() {
-  let numbers = [];
-  while(numbers.length < 45) {
-    let n = Math.floor(Math.random()*90)+1;
-    if(!numbers.includes(n)) numbers.push(n);
-  }
+export function generateBoard() {
+  const board = [];
 
-  let board = [];
-  let index = 0;
+  for (let r = 0; r < 9; r++) {
+    let row = Array(9).fill(null);
+    let cols = shuffle([0,1,2,3,4,5,6,7,8]).slice(0,5);
 
-  for(let i=0;i<9;i++){
-    let row = [];
-    let cols = [];
-    while(cols.length < 5){
-      let c = Math.floor(Math.random()*9);
-      if(!cols.includes(c)) cols.push(c);
-    }
+    cols.forEach(c => {
+      const min = c * 10 + 1;
+      const max = c === 8 ? 90 : c * 10 + 9;
+      row[c] = random(min, max);
+    });
 
-    for(let j=0;j<9;j++){
-      if(cols.includes(j)){
-        row.push(numbers[index++]);
-      } else {
-        row.push("");
-      }
-    }
     board.push(row);
   }
+
   return board;
 }
 
-for(let i=1;i<=20;i++){
-  boards[i] = generateBoard();
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
 }
 
 const select = document.getElementById("boardSelect");
@@ -97,3 +90,4 @@ loadBoard(1);
 
 </body>
 </html>
+
