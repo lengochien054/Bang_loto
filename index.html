@@ -1,27 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Lô Tô Online 9x9</title>
+
+<style>
+body { font-family: Arial; text-align: center; }
+table { border-collapse: collapse; margin: auto; }
+
+td {
+  width: 50px; height: 50px;
+  border: 1px solid #000;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.marked { background: yellow; }
+</style>
+</head>
+
+<body>
+
+<h2>Chọn STT Bảng Số</h2>
+<select id="boardSelect"></select>
+
+<h2>Bảng Lô Tô 9x9</h2>
+<table id="board"></table>
+
 <script>
 const boards = {};
 
+// Lấy số đúng theo cột
 function getNumberByColumn(col) {
   let min = col * 10 + 1;
   let max = (col === 8) ? 90 : col * 10 + 9;
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// Tạo bảng 9x9 – không trùng số
 function generateBoard() {
   let board = [];
-  let usedNumbers = new Set(); // CHỐNG TRÙNG TOÀN BẢNG
+  let usedNumbers = new Set();
 
   for(let i = 0; i < 9; i++){
     let row = Array(9).fill("");
 
-    // Chọn 5 cột
     let cols = [];
     while(cols.length < 5){
       let c = Math.floor(Math.random() * 9);
       if(!cols.includes(c)) cols.push(c);
     }
 
-    // Gán số đúng cột + không trùng toàn bảng
     cols.forEach(c => {
       let num;
       do {
@@ -39,7 +69,45 @@ function generateBoard() {
 }
 
 // Tạo 20 bảng
-for(let i=1;i<=20;i++){
+for(let i = 1; i <= 20; i++){
   boards[i] = generateBoard();
 }
+
+// Dropdown chọn bảng
+const select = document.getElementById("boardSelect");
+
+for(let i = 1; i <= 20; i++){
+  let opt = document.createElement("option");
+  opt.value = i;
+  opt.text = "Bảng số " + i;
+  select.appendChild(opt);
+}
+
+select.onchange = () => loadBoard(select.value);
+
+// Hiển thị bảng
+function loadBoard(id){
+  const board = boards[id];
+  const table = document.getElementById("board");
+  table.innerHTML = "";
+
+  for(let i = 0; i < 9; i++){
+    let tr = document.createElement("tr");
+
+    for(let j = 0; j < 9; j++){
+      let td = document.createElement("td");
+      td.innerText = board[i][j];
+      td.onclick = () => td.classList.toggle("marked");
+      tr.appendChild(td);
+    }
+
+    table.appendChild(tr);
+  }
+}
+
+// Load bảng đầu tiên
+loadBoard(1);
 </script>
+
+</body>
+</html>
